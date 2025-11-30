@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tombola - Tabellone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="main-layout">
+            <main>
+            <div class="tombola-board">
+                <div id="board" class="board-grid">
+                    <!-- I numeri verranno generati dinamicamente con JavaScript -->
+                </div>
+            </div>
+
+
+            </main>
+
+            <header>
+                <h1>TOMBOLA</h1>
+                <div class="controls">
+                    <button id="startGameBtn" class="btn btn-primary">Inizio Partita</button>
+                    <button id="pauseResumeBtn" class="btn btn-secondary" disabled>Pausa</button>
+                    <button id="resetBtn" class="btn btn-secondary">Reset Gioco</button>
+                    <button id="settingsBtn" class="btn btn-secondary">Impostazioni</button>
+                </div>
+                
+                <div class="current-number">
+                    <h2>Ultimo Estratto</h2>
+                    <div id="currentNumber" class="number-display">-</div>
+                </div>
+                
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-label">Numeri Estratti:</span>
+                        <span id="extractedCount" class="stat-value">0</span>
+                    </div>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <!-- Modal Impostazioni -->
+    <div id="settingsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Impostazioni</h3>
+                <button id="closeSettingsModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="intervalInput">Tempo tra le estrazioni (secondi):</label>
+                    <input type="number" id="intervalInput" min="1" max="60" step="1" value="6">
+                    <small>Valore attuale: <span id="currentInterval">6</span> secondi</small>
+                </div>
+                
+                <div class="setting-item">
+                    <h4>Controlli Manuali</h4>
+                    <div class="modal-controls">
+                        <button id="testAudioBtn" class="btn btn-secondary">Test Audio</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSettings" class="btn btn-primary">Salva e Applica</button>
+                <button id="cancelSettings" class="btn btn-secondary">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
