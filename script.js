@@ -7,7 +7,16 @@ class TombolaGame {
         this.autoGameRunning = false;
         this.autoGamePaused = false;
         this.autoGameInterval = null;
-        this.config = { autoExtractionInterval: 6 }; // Default fallback
+        this.config = { 
+            autoExtractionInterval: 6,
+            colors: {
+                numberColor: '#ffffff',
+                cellColor: '#3498db', 
+                backgroundColor: '#667eea',
+                extractedCellColor: '#e74c3c',
+                extractedNumberColor: '#ffffff'
+            }
+        }; // Default fallback
         
         this.initialize();
     }
@@ -18,6 +27,7 @@ class TombolaGame {
         this.createBoard();
         this.bindEvents();
         this.updateStats();
+        this.applyColors();
     }
     
     async loadConfig() {
@@ -26,8 +36,8 @@ class TombolaGame {
             const savedConfig = localStorage.getItem('tombolaConfig');
             if (savedConfig) {
                 const configData = JSON.parse(savedConfig);
-                this.config = configData.gameSettings;
-                console.log(`📋 Configurazione caricata da localStorage: intervallo ${this.config.autoExtractionInterval} secondi`);
+                this.config = { ...this.config, ...configData.gameSettings };
+                console.log(`📋 Configurazione caricata da localStorage:`, this.config);
                 return;
             }
             
@@ -35,8 +45,8 @@ class TombolaGame {
             const response = await fetch('config.json');
             if (response.ok) {
                 const configData = await response.json();
-                this.config = configData.gameSettings;
-                console.log(`📋 Configurazione caricata da file: intervallo ${this.config.autoExtractionInterval} secondi`);
+                this.config = { ...this.config, ...configData.gameSettings };
+                console.log(`📋 Configurazione caricata da file:`, this.config);
             } else {
                 console.warn('File config.json non trovato, uso configurazione predefinita');
             }
@@ -92,6 +102,9 @@ class TombolaGame {
             this.boardElement.appendChild(cell);
         }
         
+        // Applica i colori personalizzati alle celle appena create
+        setTimeout(() => this.applyColors(), 10);
+        
         console.log('📋 Tabellone creato con 90 numeri');
     }
 
@@ -134,6 +147,15 @@ class TombolaGame {
                 this.speakNumber(Math.floor(Math.random() * 90) + 1);
             });
         }
+        
+        // Pulsante reset default
+        const resetDefaultBtn = document.getElementById('resetDefaultBtn');
+        if (resetDefaultBtn) {
+            resetDefaultBtn.addEventListener('click', () => this.resetToDefaults());
+        }
+        
+        // Sincronizzazione input colore
+        this.bindColorInputs();
         
         // Aggiungi evento per la barra spaziatrice
         document.addEventListener('keydown', (e) => {
@@ -225,6 +247,9 @@ class TombolaGame {
                     this.currentNumber = number;
                     cell.classList.add('extracted', 'current');
                     this.updateCurrentNumberDisplay(number);
+                    
+                    // Applica colori personalizzati alla cella estratta
+                    setTimeout(() => this.applyCellColors(cell), 10);
                 }
             }
         }
@@ -244,6 +269,8 @@ class TombolaGame {
         const cell = document.querySelector(`[data-number="${number}"]`);
         if (cell) {
             cell.classList.add('extracted', 'current');
+            // Applica colori personalizzati alla cella estratta
+            setTimeout(() => this.applyCellColors(cell), 10);
         }
     }
 
@@ -420,12 +447,51 @@ class TombolaGame {
         const intervalInput = document.getElementById('intervalInput');
         const currentInterval = document.getElementById('currentInterval');
         
+        // Elementi colore
+        const numberColorInput = document.getElementById('numberColorInput');
+        const numberColorHex = document.getElementById('numberColorHex');
+        const cellColorInput = document.getElementById('cellColorInput');
+        const cellColorHex = document.getElementById('cellColorHex');
+        const backgroundColorInput = document.getElementById('backgroundColorInput');
+        const backgroundColorHex = document.getElementById('backgroundColorHex');
+        
         console.log('📋 Elementi trovati:', { modal: !!modal, intervalInput: !!intervalInput, currentInterval: !!currentInterval });
         
         if (modal && intervalInput && currentInterval) {
             // Mostra i valori attuali
             intervalInput.value = this.config.autoExtractionInterval;
             currentInterval.textContent = this.config.autoExtractionInterval;
+            
+            // Imposta valori colore se disponibili
+            if (this.config.colors) {
+                if (numberColorInput && numberColorHex && this.config.colors.numberColor) {
+                    numberColorInput.value = this.config.colors.numberColor;
+                    numberColorHex.value = this.config.colors.numberColor;
+                }
+                if (cellColorInput && cellColorHex && this.config.colors.cellColor) {
+                    cellColorInput.value = this.config.colors.cellColor;
+                    cellColorHex.value = this.config.colors.cellColor;
+                }
+                if (backgroundColorInput && backgroundColorHex && this.config.colors.backgroundColor) {
+                    backgroundColorInput.value = this.config.colors.backgroundColor;
+                    backgroundColorHex.value = this.config.colors.backgroundColor;
+                }
+                
+                // Elementi colore estratti
+                const extractedCellColorInput = document.getElementById('extractedCellColorInput');
+                const extractedCellColorHex = document.getElementById('extractedCellColorHex');
+                const extractedNumberColorInput = document.getElementById('extractedNumberColorInput');
+                const extractedNumberColorHex = document.getElementById('extractedNumberColorHex');
+                
+                if (extractedCellColorInput && extractedCellColorHex && this.config.colors.extractedCellColor) {
+                    extractedCellColorInput.value = this.config.colors.extractedCellColor;
+                    extractedCellColorHex.value = this.config.colors.extractedCellColor;
+                }
+                if (extractedNumberColorInput && extractedNumberColorHex && this.config.colors.extractedNumberColor) {
+                    extractedNumberColorInput.value = this.config.colors.extractedNumberColor;
+                    extractedNumberColorHex.value = this.config.colors.extractedNumberColor;
+                }
+            }
             
             // Mostra il modal
             modal.style.display = 'flex';
@@ -452,8 +518,42 @@ class TombolaGame {
             return;
         }
         
+        // Leggi valori colore
+        const numberColorHex = document.getElementById('numberColorHex');
+        const cellColorHex = document.getElementById('cellColorHex');
+        const backgroundColorHex = document.getElementById('backgroundColorHex');
+        
         // Aggiorna la configurazione
         this.config.autoExtractionInterval = newInterval;
+        
+        // Assicurati che colors esista
+        if (!this.config.colors) {
+            this.config.colors = {};
+        }
+        
+        // Aggiorna colori se specificati e validi
+        if (numberColorHex && numberColorHex.value && /^#[0-9A-Fa-f]{6}$/.test(numberColorHex.value)) {
+            this.config.colors.numberColor = numberColorHex.value;
+        }
+        if (cellColorHex && cellColorHex.value && /^#[0-9A-Fa-f]{6}$/.test(cellColorHex.value)) {
+            this.config.colors.cellColor = cellColorHex.value;
+        }
+        if (backgroundColorHex && backgroundColorHex.value && /^#[0-9A-Fa-f]{6}$/.test(backgroundColorHex.value)) {
+            this.config.colors.backgroundColor = backgroundColorHex.value;
+        }
+        
+        // Leggi colori numeri estratti
+        const extractedCellColorHex = document.getElementById('extractedCellColorHex');
+        const extractedNumberColorHex = document.getElementById('extractedNumberColorHex');
+        
+        if (extractedCellColorHex && extractedCellColorHex.value && /^#[0-9A-Fa-f]{6}$/.test(extractedCellColorHex.value)) {
+            this.config.colors.extractedCellColor = extractedCellColorHex.value;
+        }
+        if (extractedNumberColorHex && extractedNumberColorHex.value && /^#[0-9A-Fa-f]{6}$/.test(extractedNumberColorHex.value)) {
+            this.config.colors.extractedNumberColor = extractedNumberColorHex.value;
+        }
+        
+        console.log('💾 Salvando configurazione:', this.config);
         
         // Se il gioco automatico è in corso, riavvialo con il nuovo intervallo
         if (this.autoGameRunning) {
@@ -477,13 +577,229 @@ class TombolaGame {
             console.log('💾 Configurazione salvata:', configData);
             localStorage.setItem('tombolaConfig', JSON.stringify(configData));
             
-            this.showNotification(`⚙️ Impostazioni salvate! Nuovo intervallo: ${newInterval} secondi`);
+            // Applica i colori immediatamente
+            this.applyColors();
+            
+            // Forza il refresh dei colori dei numeri estratti
+            setTimeout(() => this.refreshExtractedNumbers(), 50);
+            
+            this.showNotification(`⚙️ Impostazioni salvate e applicate!`);
         } catch (error) {
             console.error('Errore nel salvataggio della configurazione:', error);
             this.showNotification('⚠️ Errore nel salvataggio delle impostazioni', 'error');
         }
         
         this.closeSettingsModal();
+    }
+    
+    applyColors() {
+        if (!this.config.colors) {
+            console.warn('⚠️ Nessuna configurazione colore trovata');
+            return;
+        }
+        
+        // Applica colore di sfondo
+        if (this.config.colors.backgroundColor) {
+            document.body.style.background = `linear-gradient(135deg, ${this.config.colors.backgroundColor} 0%, #764ba2 100%)`;
+        }
+        
+        // Applica colori alle celle dei numeri
+        const numberCells = document.querySelectorAll('.number-cell');
+        if (numberCells.length > 0) {
+            numberCells.forEach(cell => {
+                if (cell.classList.contains('extracted')) {
+                    // Stili per numeri estratti
+                    if (this.config.colors.extractedCellColor) {
+                        cell.style.setProperty('background', `linear-gradient(45deg, ${this.config.colors.extractedCellColor}, #c0392b)`, 'important');
+                    }
+                    if (this.config.colors.extractedNumberColor) {
+                        cell.style.setProperty('color', this.config.colors.extractedNumberColor, 'important');
+                    }
+                } else {
+                    // Stili per numeri non estratti
+                    if (this.config.colors.cellColor) {
+                        cell.style.setProperty('background', `linear-gradient(45deg, ${this.config.colors.cellColor}, #2980b9)`, 'important');
+                    }
+                    if (this.config.colors.numberColor) {
+                        cell.style.setProperty('color', this.config.colors.numberColor, 'important');
+                    }
+                }
+            });
+        }
+        
+        console.log('🎨 Colori applicati:', this.config.colors);
+    }
+    
+    applyCellColors(cell) {
+        if (!this.config.colors || !cell) {
+            console.warn('⚠️ applyCellColors: mancano config.colors o cell');
+            return;
+        }
+        
+        const number = cell.dataset.number;
+        const isExtracted = cell.classList.contains('extracted');
+        console.log(`🎨 Applicando colori alla cella ${number}, estratta: ${isExtracted}`, this.config.colors);
+        
+        if (cell.classList.contains('extracted')) {
+            // Stili per numeri estratti
+            if (this.config.colors.extractedCellColor) {
+                cell.style.setProperty('background', `linear-gradient(45deg, ${this.config.colors.extractedCellColor}, #c0392b)`, 'important');
+            }
+            if (this.config.colors.extractedNumberColor) {
+                cell.style.setProperty('color', this.config.colors.extractedNumberColor, 'important');
+            }
+            
+            // Se è anche il numero corrente, mantieni gli effetti speciali ma usa i colori personalizzati
+            if (cell.classList.contains('current') && this.config.colors.extractedCellColor) {
+                cell.style.setProperty('background', `linear-gradient(45deg, ${this.config.colors.extractedCellColor}, #c0392b)`, 'important');
+            }
+        } else {
+            // Stili per numeri non estratti
+            if (this.config.colors.cellColor) {
+                cell.style.setProperty('background', `linear-gradient(45deg, ${this.config.colors.cellColor}, #2980b9)`, 'important');
+            }
+            if (this.config.colors.numberColor) {
+                cell.style.setProperty('color', this.config.colors.numberColor, 'important');
+            }
+        }
+    }
+
+    refreshExtractedNumbers() {
+        // Forza l'applicazione dei colori personalizzati a tutti i numeri estratti
+        const extractedCells = document.querySelectorAll('.number-cell.extracted');
+        console.log(`🔄 Aggiornando colori di ${extractedCells.length} numeri estratti`);
+        extractedCells.forEach(cell => {
+            setTimeout(() => this.applyCellColors(cell), 10);
+        });
+    }
+
+    resetToDefaults() {
+        // Valori di default
+        this.config.autoExtractionInterval = 6;
+        this.config.colors = {
+            numberColor: '#ffffff',
+            cellColor: '#3498db',
+            backgroundColor: '#667eea',
+            extractedCellColor: '#e74c3c',
+            extractedNumberColor: '#ffffff'
+        };
+        
+        // Aggiorna gli input del modal
+        const intervalInput = document.getElementById('intervalInput');
+        const currentInterval = document.getElementById('currentInterval');
+        const numberColorInput = document.getElementById('numberColorInput');
+        const numberColorHex = document.getElementById('numberColorHex');
+        const cellColorInput = document.getElementById('cellColorInput');
+        const cellColorHex = document.getElementById('cellColorHex');
+        const backgroundColorInput = document.getElementById('backgroundColorInput');
+        const backgroundColorHex = document.getElementById('backgroundColorHex');
+        
+        if (intervalInput) intervalInput.value = 6;
+        if (currentInterval) currentInterval.textContent = 6;
+        
+        if (numberColorInput) numberColorInput.value = '#ffffff';
+        if (numberColorHex) numberColorHex.value = '#ffffff';
+        if (cellColorInput) cellColorInput.value = '#3498db';
+        if (cellColorHex) cellColorHex.value = '#3498db';
+        if (backgroundColorInput) backgroundColorInput.value = '#667eea';
+        if (backgroundColorHex) backgroundColorHex.value = '#667eea';
+        
+        const extractedCellColorInput = document.getElementById('extractedCellColorInput');
+        const extractedCellColorHex = document.getElementById('extractedCellColorHex');
+        const extractedNumberColorInput = document.getElementById('extractedNumberColorInput');
+        const extractedNumberColorHex = document.getElementById('extractedNumberColorHex');
+        
+        if (extractedCellColorInput) extractedCellColorInput.value = '#e74c3c';
+        if (extractedCellColorHex) extractedCellColorHex.value = '#e74c3c';
+        if (extractedNumberColorInput) extractedNumberColorInput.value = '#ffffff';
+        if (extractedNumberColorHex) extractedNumberColorHex.value = '#ffffff';
+        
+        // Applica i colori
+        this.applyColors();
+        
+        this.showNotification('🔄 Impostazioni ripristinate ai valori di default!');
+    }
+    
+    bindColorInputs() {
+        // Sincronizza input colore numero
+        const numberColorInput = document.getElementById('numberColorInput');
+        const numberColorHex = document.getElementById('numberColorHex');
+        if (numberColorInput && numberColorHex) {
+            numberColorInput.addEventListener('input', () => {
+                numberColorHex.value = numberColorInput.value;
+                console.log('🎨 Colore numero aggiornato:', numberColorInput.value);
+            });
+            numberColorHex.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(numberColorHex.value)) {
+                    numberColorInput.value = numberColorHex.value;
+                    console.log('🎨 Colore numero hex aggiornato:', numberColorHex.value);
+                }
+            });
+        }
+        
+        // Sincronizza input colore cella
+        const cellColorInput = document.getElementById('cellColorInput');
+        const cellColorHex = document.getElementById('cellColorHex');
+        if (cellColorInput && cellColorHex) {
+            cellColorInput.addEventListener('input', () => {
+                cellColorHex.value = cellColorInput.value;
+                console.log('🎨 Colore cella aggiornato:', cellColorInput.value);
+            });
+            cellColorHex.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(cellColorHex.value)) {
+                    cellColorInput.value = cellColorHex.value;
+                    console.log('🎨 Colore cella hex aggiornato:', cellColorHex.value);
+                }
+            });
+        }
+        
+        // Sincronizza input colore sfondo
+        const backgroundColorInput = document.getElementById('backgroundColorInput');
+        const backgroundColorHex = document.getElementById('backgroundColorHex');
+        if (backgroundColorInput && backgroundColorHex) {
+            backgroundColorInput.addEventListener('input', () => {
+                backgroundColorHex.value = backgroundColorInput.value;
+                console.log('🎨 Colore sfondo aggiornato:', backgroundColorInput.value);
+            });
+            backgroundColorHex.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(backgroundColorHex.value)) {
+                    backgroundColorInput.value = backgroundColorHex.value;
+                    console.log('🎨 Colore sfondo hex aggiornato:', backgroundColorHex.value);
+                }
+            });
+        }
+        
+        // Sincronizza input colore cella estratta
+        const extractedCellColorInput = document.getElementById('extractedCellColorInput');
+        const extractedCellColorHex = document.getElementById('extractedCellColorHex');
+        if (extractedCellColorInput && extractedCellColorHex) {
+            extractedCellColorInput.addEventListener('input', () => {
+                extractedCellColorHex.value = extractedCellColorInput.value;
+                console.log('🎨 Colore cella estratta aggiornato:', extractedCellColorInput.value);
+            });
+            extractedCellColorHex.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(extractedCellColorHex.value)) {
+                    extractedCellColorInput.value = extractedCellColorHex.value;
+                    console.log('🎨 Colore cella estratta hex aggiornato:', extractedCellColorHex.value);
+                }
+            });
+        }
+        
+        // Sincronizza input colore testo estratto
+        const extractedNumberColorInput = document.getElementById('extractedNumberColorInput');
+        const extractedNumberColorHex = document.getElementById('extractedNumberColorHex');
+        if (extractedNumberColorInput && extractedNumberColorHex) {
+            extractedNumberColorInput.addEventListener('input', () => {
+                extractedNumberColorHex.value = extractedNumberColorInput.value;
+                console.log('🎨 Colore testo estratto aggiornato:', extractedNumberColorInput.value);
+            });
+            extractedNumberColorHex.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(extractedNumberColorHex.value)) {
+                    extractedNumberColorInput.value = extractedNumberColorHex.value;
+                    console.log('🎨 Colore testo estratto hex aggiornato:', extractedNumberColorHex.value);
+                }
+            });
+        }
     }
     
     bindSettingsModal() {
@@ -565,6 +881,8 @@ class TombolaGame {
         const cells = document.querySelectorAll('.number-cell');
         cells.forEach(cell => {
             cell.classList.remove('extracted', 'current');
+            // Riapplica colori normali
+            this.applyCellColors(cell);
         });
         
         // Aggiorna statistiche
@@ -702,6 +1020,8 @@ class TombolaGame {
         const cells = document.querySelectorAll('.number-cell');
         cells.forEach(cell => {
             cell.classList.remove('extracted', 'current');
+            // Riapplica colori normali
+            this.applyCellColors(cell);
         });
         
         // Aggiorna statistiche

@@ -58,9 +58,41 @@
                 </div>
                 
                 <div class="setting-item">
+                    <h4>Personalizzazione Colori</h4>
+                    <div class="color-settings">
+                        <div class="color-input-group">
+                            <label for="numberColorInput">Colore numeri tabellone:</label>
+                            <input type="color" id="numberColorInput" value="#ffffff">
+                            <input type="text" id="numberColorHex" placeholder="#ffffff" maxlength="7">
+                        </div>
+                        <div class="color-input-group">
+                            <label for="cellColorInput">Colore contenitori numeri:</label>
+                            <input type="color" id="cellColorInput" value="#3498db">
+                            <input type="text" id="cellColorHex" placeholder="#3498db" maxlength="7">
+                        </div>
+                        <div class="color-input-group">
+                            <label for="backgroundColorInput">Colore sfondo applicazione:</label>
+                            <input type="color" id="backgroundColorInput" value="#667eea">
+                            <input type="text" id="backgroundColorHex" placeholder="#667eea" maxlength="7">
+                        </div>
+                        <div class="color-input-group">
+                            <label for="extractedCellColorInput">Colore contenitori numeri estratti:</label>
+                            <input type="color" id="extractedCellColorInput" value="#e74c3c">
+                            <input type="text" id="extractedCellColorHex" placeholder="#e74c3c" maxlength="7">
+                        </div>
+                        <div class="color-input-group">
+                            <label for="extractedNumberColorInput">Colore testo numeri estratti:</label>
+                            <input type="color" id="extractedNumberColorInput" value="#ffffff">
+                            <input type="text" id="extractedNumberColorHex" placeholder="#ffffff" maxlength="7">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
                     <h4>Controlli Manuali</h4>
                     <div class="modal-controls">
                         <button id="testAudioBtn" class="btn btn-secondary">Test Audio</button>
+                        <button id="resetDefaultBtn" class="btn btn-secondary">Ripristina Default</button>
                     </div>
                 </div>
             </div>

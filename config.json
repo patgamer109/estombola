@@ -1,6 +1,13 @@
 {
   "gameSettings": {
     "autoExtractionInterval": 6,
-    "description": "Tempo in secondi tra l'estrazione di un numero e quello successivo nella modalità partita"
+    "description": "Tempo in secondi tra l'estrazione di un numero e quello successivo nella modalità partita",
+    "colors": {
+      "numberColor": "#ffffff",
+      "cellColor": "#3498db",
+      "backgroundColor": "#667eea",
+      "extractedCellColor": "#e74c3c",
+      "extractedNumberColor": "#ffffff"
+    }
   }
 }
